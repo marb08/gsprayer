@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # MIT License
 #
-# Copyright (c) 2022 Mayk
+# Copyright (c) 2023 marb08
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -48,19 +48,18 @@ from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 
-from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.firefox import GeckoDriverManager
+#from webdriver_manager.chrome import Undetected Chrome Driver to be stealth
+import undetected_chromedriver as uc
 
 
 # Maspping of element XPATH's in the authentication process
 elements = {
     "username": {"type": "XPATH", "value": '//*[@id="identifierId"]'},
-    "password": {"type": "NAME", "value": "password"},
+    "password": {"type": "XPATH", "value": '//*[@id="password"]'},
     "button_next": {
         "type": "XPATH",
         "value": (
-            "/html/body/div[1]/div[1]/div[2]/div/div[2]/"
-            "div/div/div[2]/div/div[2]/div/div[1]/div/div/button"
+            '//*[@id ="identifierNext"]'
         ),
     },
     "captcha": {"type": "XPATH", "value": '//*[@id="captchaimg"]'},
@@ -171,7 +170,7 @@ class BrowserEngine:
 
 # Class for chrome browser
 class ChromeBrowserEngine(BrowserEngine):
-    driver_path = ChromeDriverManager(log_level=0).install()
+    #driver_path = ChromeDriverManager(log_level=0).install()
 
     def __init__(self, wait=5, proxy=None, headless=False, random_ua=False):
         self.options = ChromeOptions()
@@ -180,29 +179,31 @@ class ChromeBrowserEngine(BrowserEngine):
         self.options.add_argument("--incognito")
         self.options.add_argument("--lang=en-US")
         self.options.add_argument("--no-sandbox")
+        if headless:
+            self.options.add_argument('--headless')
         self.options.add_argument("--disable-dev-shm-usage")
         self.options.add_argument(
             '--user-agent=""Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
             'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36""'
         )
         self.options.accept_untrusted_certs = True
-        self.options.headless = headless
+        #self.options.headless = headless
         self.set_proxy(proxy)
-        prefs = {
-            "profile.managed_default_content_settings.images": 1,
-            "profile.default_content_setting_values.notifications": 2,
-            "profile.managed_default_content_settings.stylesheets": 2,
-            "profile.managed_default_content_settings.cookies": 1,
-            "profile.managed_default_content_settings.javascript": 1,
-            "profile.managed_default_content_settings.plugins": 1,
-            "profile.managed_default_content_settings.popups": 2,
-            "profile.managed_default_content_settings.geolocation": 2,
-            "profile.managed_default_content_settings.media_stream": 2,
-        }
-        self.options.add_experimental_option("prefs", prefs)
+#        prefs = {
+#            "profile.managed_default_content_settings.images": 1,
+#            "profile.default_content_setting_values.notifications": 2,
+#            "profile.managed_default_content_settings.stylesheets": 2,
+#            "profile.managed_default_content_settings.cookies": 1,
+#            "profile.managed_default_content_settings.javascript": 1,
+#            "profile.managed_default_content_settings.plugins": 1,
+#            "profile.managed_default_content_settings.popups": 2,
+#            "profile.managed_default_content_settings.geolocation": 2,
+#            "profile.managed_default_content_settings.media_stream": 2,
+#        }
+        #self.options.add_experimental_option("prefs", prefs)
 
-        self.driver = Chrome(
-            options=self.options, service=ChromeService(self.driver_path)
+        self.driver = uc.Chrome(
+            options=self.options, #service=ChromeService(self.driver_path)
         )
         self.driver.set_window_position(0, 0)
         self.driver.set_window_size(1024, 768)
@@ -218,7 +219,7 @@ class ChromeBrowserEngine(BrowserEngine):
 
 # Class for firefox browser
 class FirefoxBrowserEngine(BrowserEngine):
-    driver_path = GeckoDriverManager(log_level=0).install()
+    #driver_path = GeckoDriverManager(log_level=0).install()
 
     def __init__(self, wait=5, proxy=None, headless=False, random_ua=False):
         self.set_proxy(proxy)  # this should be at the top to make effect
@@ -237,7 +238,7 @@ class FirefoxBrowserEngine(BrowserEngine):
         self.options.headless = headless
 
         self.driver = Firefox(
-            options=self.options, service=FirefoxService(self.driver_path)
+            options=self.options, #service=FirefoxService(self.driver_path)
         )
         self.driver.set_window_position(0, 0)
         self.driver.set_window_size(1024, 768)
@@ -421,7 +422,7 @@ def enum(args, username_list):
         try:
             browser.click(browser.is_clickable(element["type"], element["value"]))
         except BaseException as e:
-            print("[ERROR] %s" % e)
+            print("[ERROR NOT FOUND BUTTON TO CLICK] %s" % e)
             continue
 
         wait(max(args.wait/2, 1), args.jitter)
